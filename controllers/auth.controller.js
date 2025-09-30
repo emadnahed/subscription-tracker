@@ -26,7 +26,7 @@ export const signUp = async (req, res, next) => {
             error.statusCode = 409;
             throw error;
         }
-        
+
         // hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -59,7 +59,33 @@ export const signUp = async (req, res, next) => {
 
 export const signIn = async (req, res, next) => {
     try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
 
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            const error = new Error('Invalid password');
+            error.statusCode = 401;
+            throw error;
+        }
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'fallback-secret', {
+            expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'User signed in successfully',
+            data: {
+                token,
+                user
+            }
+        });
 
     } catch (error) {
         next(error)
