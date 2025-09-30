@@ -7,4 +7,10 @@ config({
 });
 
 // Destructure after config
-export const { PORT, NODE_ENV = 'development', DB_URI } = process.env;
+export const {
+    PORT,
+    NODE_ENV = 'development',
+    DB_URI, JWT_SECRET,
+    JWT_EXPIRES_IN
+
+} = process.env;
